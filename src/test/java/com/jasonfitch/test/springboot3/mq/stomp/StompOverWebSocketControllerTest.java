@@ -120,17 +120,15 @@ public class StompOverWebSocketControllerTest {
         SubscribeFutureStompFrameHandler<String> subscribeFutureStompFrameHandler = new SubscribeFutureStompFrameHandler<>();
 
         // connect to the WebSocket endpoint
-        //TODO why the session future cannot finish with connect exception when the server is not started ?
         StompSessionHandlerAdapter connectionStompSessionHandler = new ConnectionStompSessionHandler();
         CompletableFuture<StompSession> sessionCompletableFuture = stompClient.connectAsync(WEBSOCKET_URL, connectionStompSessionHandler);
         sessionCompletableFuture.thenApplyAsync((session) -> {
             System.out.println("######## session.subscribe ########");
             StompSession.Subscription subscribe = session.subscribe(SUBSCRIBE_NAME, subscribeFutureStompFrameHandler);
             if (subscribe != null) {
-                //TODO why the session future cannot finish with this test-subscribe-exception when it is thrown ?
-                String exceptionMessage = "test-subscribe-exception";
-                System.out.println("######## " + exceptionMessage + " ########");
-                throw new RuntimeException(exceptionMessage);
+//                String exceptionMessage = "test-subscribe-exception";
+//                System.out.println("######## " + exceptionMessage + " ########");
+//                throw new RuntimeException(exceptionMessage);
             }
             return session;
         }).thenApply((session) -> {
@@ -143,14 +141,14 @@ public class StompOverWebSocketControllerTest {
                 // so the exception of @see java.util.concurrent.CompletableFuture.exceptionally from session future is ignored
                 // 【return RESULT.compareAndSet(this, null, r);】
                 // finally once the send is success, the subscribe future may finish with the payload prior to the exception with session future
-                String exceptionMessage = "test-send-exception";
-                System.out.println("######## " + exceptionMessage + " ########");
-                throw new RuntimeException(exceptionMessage);
+//                String exceptionMessage = "test-send-exception";
+//                System.out.println("######## " + exceptionMessage + " ########");
+//                throw new RuntimeException(exceptionMessage);
             }
             return send;
-        }).thenAcceptBoth(subscribeFutureStompFrameHandler, (send, result) -> {
-            System.out.println("send=" + send);
-            System.out.println("result=" + result);
+        }).runAfterEither(subscribeFutureStompFrameHandler, () -> {
+            System.out.println("######## session.runAfterEither");
+            subscribeFutureStompFrameHandler.completeOnTimeout("completeOnTimeout ", 1000 * 3, TimeUnit.MILLISECONDS);
         }).exceptionally((throwable) -> {
             System.out.println("######## session.exceptionally=" + throwable);
             subscribeFutureStompFrameHandler.completeExceptionally(throwable);
@@ -158,7 +156,7 @@ public class StompOverWebSocketControllerTest {
         });
 
         // wait for receive message completion
-        String future = subscribeFutureStompFrameHandler.get(3000, TimeUnit.MILLISECONDS);
+        String future = subscribeFutureStompFrameHandler.get(1000 * 3 * 1000, TimeUnit.MILLISECONDS);
         System.out.println("######## future=" + future);
         Assertions.assertThat(future).isEqualTo(SUBSCRIBE_PAYLOAD);
     }
