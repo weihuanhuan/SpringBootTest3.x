@@ -23,6 +23,8 @@ public class NativeJedisClient {
     private String password;
 
     public Jedis initNewJedis() {
+        System.out.println(this);
+
         Jedis jedis = new Jedis(host, port);
 
         if (!isBlank(password)) {
@@ -81,6 +83,17 @@ public class NativeJedisClient {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString() {
+        return "NativeJedisClient{" +
+                "host='" + host + '\'' +
+                ", port=" + port +
+                ", database=" + database +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                '}';
     }
 
 }

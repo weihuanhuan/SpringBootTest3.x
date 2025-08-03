@@ -1,0 +1,44 @@
+spring:
+  # application
+  application:
+    name: spring boot test for 3.x
+  # redis
+  data:
+    redis:
+      host: 192.168.56.10
+      port: 6379
+      database: 0
+      username:
+      password: 123456
+  # cloud stream
+  cloud:
+    function:
+      definition: enrichLogMessage;processLogs;highlightLogs
+    stream:
+      function.routing.enabled: true
+      # in-memory binder
+      bindings:
+        enrichLogMessage-in-0:
+          destination: queue.log.messages
+          group: test-group
+        enrichLogMessage-out-0:
+          destination: queue.pretty.log.messages
+      #//TODO 如何测试使用 rabbitmq binder 而不是 in-memory binder 呢?
+#      bindings:
+#        input:
+#          destination: rabbitmq.queue.log.messages
+#          binder: local_rabbit
+#        output:
+#          destination: rabbitmq.pretty.log.messages
+#          binder: local_rabbit
+#      binders:
+#        local_rabbit:
+#          type: rabbit
+#          environment:
+#            spring:
+#              rabbitmq:
+#                host: 192.168.56.10
+#                port: 5672
+#                username: admin
+#                password: admin
+#                virtual-host: /
